@@ -65,7 +65,7 @@ void setMotorSpeedESC(int d){
   else if(d < 0) // clamp to zero
     d = 0;
   if(d > 10){ // need at least 10% of throttle before spinning)
-     int duty = 60+(d/100*40); // corrected value to match signal width
+     int duty = 60+(d*0.4); // corrected value to match signal width
      Timer1.pwm(MOTOR_PIN,duty);
      Serial.print("Duty set to: ");
      Serial.print(d);
@@ -76,15 +76,15 @@ void setMotorSpeedESC(int d){
 }
 
 void setServoPosition(int pos){
-    if(pos > 100)// clamp to max 100%
-    pos = 100;
-  else if(pos < -100) // clamp to min -100%
-    pos = -100;
-  int posCorrected = 75 +(pos/100*40); // corrected signal to match +- signal width
+    if(pos > 90)// clamp to max 100%
+    pos = 90;
+  else if(pos < -90) // clamp to min -100%
+    pos = -90;
+  int posCorrected = 75 +(pos*0.4); // corrected signal to match +- signal width
   Timer1.pwm(SERVO_PIN,posCorrected);
   Serial.print("Servo position set to: ");
   Serial.print(pos);
-  Serial.println("%");
+  Serial.println(" degree");
 }
 
 void arm(bool arm){
@@ -97,8 +97,10 @@ void arm(bool arm){
 
 void calibrateESC(){
     // Set max trottle followed by minimum throttle. Same as swiping stick up and down to calibrate signal range
+  Serial.print("Calibrating...");
   setMotorSpeedESC(100);
   delay(100);
   setMotorSpeedESC(0);
+  Serial.println("Calibrating done");
 }
 
