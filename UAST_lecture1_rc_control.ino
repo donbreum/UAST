@@ -2,6 +2,7 @@
 
 #define MOTOR_PIN 9
 #define SERVO_PIN 10
+#define LED_PIN 10
 String data;
 bool armed = false; // used to check if we have armed to UAV
  
@@ -12,7 +13,11 @@ void setup()
   
   Timer1.initialize(20000); // set a timer of length 10000 microseconds (or 0.02 sec - or 50Hz)
   Timer1.pwm(MOTOR_PIN, 0); // initially duty is set 0
-  Timer1.pwm(SERVO_PIN, 75); // initially duty is set to middle point (1,5 ms for this value)
+  //Timer1.pwm(SERVO_PIN, 75); // initially duty is set to middle point (1,5 ms for this value)
+  Timer1.pwm(LED_PIN,500);
+  
+  pinMode(LED_BUILTIN, INPUT);
+
   Serial.println("Setup done!");
 }
  
@@ -24,7 +29,7 @@ void loop()
 
         int dataSize = data.length();
         String command = data.substring(0,1);
-        int commandInt = command.toInt();
+        int commandInt = command.toInt(); 
         String valueStr = data.substring(1,dataSize);
         Serial.print("Command chosen: ");
         Serial.println(command);
@@ -67,6 +72,7 @@ void setMotorSpeedESC(int d){
     d = 0;
   if(d > 10){ // need at least 10% of throttle before spinning)
      int duty = 60+(d*0.4); // corrected value to match signal width
+     setLEDwithRC(d);
      Timer1.pwm(MOTOR_PIN,duty);
      Serial.print("Duty set to: ");
      Serial.print(d);
@@ -74,6 +80,11 @@ void setMotorSpeedESC(int d){
   }else{
     Timer1.pwm(MOTOR_PIN,0);
   }
+  
+}
+
+void setLEDwithRC(int duty){
+  Timer1.pwm(LED_PIN,duty*10);
 }
 
 void setServoPosition(int pos){
@@ -104,4 +115,6 @@ void calibrateESC(){
   setMotorSpeedESC(11);
   Serial.println("Calibrating done");
 }
+
+
 
