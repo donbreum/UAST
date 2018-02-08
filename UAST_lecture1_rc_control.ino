@@ -82,7 +82,7 @@ void set_motor_speed(int duty){
   if(clamped_value > 10){ // need at least 10% of throttle before spinning)
      int duty_corrected_value = 60+(clamped_value*0.4); // corrected value to match signal width
        
-#ifdef USE_SERVO_AND_ESC
+#ifndef USE_SERVO_AND_ESC
      set_onboard_led_value(duty);
 #endif
      Timer1.pwm(MOTOR_PIN,duty_corrected_value);
@@ -94,7 +94,7 @@ void set_motor_speed(int duty){
   }
 }
 
-#ifdef USE_SERVO_AND_ESC
+#ifndef USE_SERVO_AND_ESC
 void set_onboard_led_value(int duty){
   Timer1.pwm(LED_PIN,duty*10);
 }
