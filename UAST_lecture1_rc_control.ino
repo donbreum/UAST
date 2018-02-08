@@ -44,6 +44,7 @@ void loop()
             break;
           case 4: // calibrate esc
             calibrateESC();
+            break;
           case 5: // set servo position, uses pin 10
             setServoPosition(valueStr.toInt());
             break;
@@ -99,8 +100,8 @@ void calibrateESC(){
     // Set max trottle followed by minimum throttle. Same as swiping stick up and down to calibrate signal range
   Serial.print("Calibrating...");
   setMotorSpeedESC(100);
-  delay(100);
-  setMotorSpeedESC(0);
+  delay(500);
+  setMotorSpeedESC(11);
   Serial.println("Calibrating done");
 }
 
