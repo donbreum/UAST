@@ -5,11 +5,11 @@
 #define SERVO_OR_LED_PIN 10
 
 
-// Servo and ESC RC signal, else we will use timer for visualizing LED
+// Servo and ESC RC signal, else use timer for visualizing LED
 // uncomment to use pin 10 for LED instead of servo
 //#define USE_SERVO_AND_ESC 
 
-bool armed = false; // used to check if we have armed to UAV
+bool armed = false; // used to check if UAV is armed
  
 void setup(){
   Serial.begin(115200);
@@ -51,7 +51,8 @@ void select_action(String data){
   switch (action_number.toInt()) {
     case 1:
       if(armed)
-        set_motor_speed(value_for_motors.toInt()); // set duty from 0 - 100%, uses pin 9
+        // set duty from 0 - 100%, uses pin 9
+        set_motor_speed(value_for_motors.toInt()); 
       else
         Serial.println("You need to arm the UAV before applying throttle");
       break;
@@ -80,9 +81,10 @@ void select_action(String data){
 
 void set_motor_speed(int duty){
   int clamped_value = clamp_value(duty, 0,100);
-  if(clamped_value > 10){ // need at least 10% of throttle before spinning)
-     int duty_corrected_value = 60+(clamped_value*0.4); // corrected value to match signal width
-       
+  // need at least 10% of throttle before spinning)
+  if(clamped_value > 10){
+     // corrected value to match signal width 
+     int duty_corrected_value = 60+(clamped_value*0.4);    
 #ifndef USE_SERVO_AND_ESC
      set_onboard_led_value(duty);
 #endif
@@ -103,7 +105,8 @@ void set_onboard_led_value(int duty){
 
 void set_servo_position(int pos){
   int clamped_position = clamp_value(pos, -90,90);
-  int pos_corrected = 75 +(clamped_position*0.4); // corrected signal to match +- signal width
+  // corrected signal to match +- signal width
+  int pos_corrected = 75 +(clamped_position*0.4); 
   Timer1.pwm(SERVO_OR_LED_PIN,pos_corrected);
   Serial.print("Servo position set to: ");
   Serial.print(clamped_position);
@@ -119,7 +122,8 @@ void arm(bool arm){
 }
 
 void calibrate_esc(){
-   // Set max trottle followed by minimum throttle. Same as swiping stick up and down to calibrate signal range
+   // Set max trottle followed by minimum throttle
+   // Same as swiping stick up and down to calibrate signal range
   Serial.print("Calibrating...");
   set_motor_speed(100);
   delay(2000);
