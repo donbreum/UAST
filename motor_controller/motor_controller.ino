@@ -15,7 +15,7 @@ void setup(){
   Serial.begin(115200);
   Serial.print("Setup....");
 
-   // set a timer of length 10000 microseconds (or 0.02 sec - or 50Hz)
+  // set a timer of length 20000 microseconds (or 0.02 sec - or 50Hz)
   Timer1.initialize(20000);
   // initially duty is set 0
   Timer1.pwm(MOTOR_PIN, 0); 
