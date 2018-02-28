@@ -7,7 +7,7 @@ import numpy as np
 def plot_data(input_data, show_result=False, title="Title", fname="result"):
     """
     Function for parsing input data and plot it using bokeh library.
-    
+
     The data is supossed to contain the results of 3 different tests for
     a experiment. Hence, it is divided in three arrays where the results
     for each test is isolated. It is also found the average values and a
@@ -18,7 +18,7 @@ def plot_data(input_data, show_result=False, title="Title", fname="result"):
 
     Finally, it is also calculated the polynomial function that fits the
     x values (duty cycle), according to the y_mean (thrust), reversing
-    the function direction. This way, a function for estimating the 
+    the function direction. This way, a function for estimating the
     duty cycle can be obtained. This coeficients are returned.
     """
     bkplot.output_file("./results/{}.html".format(fname))
