@@ -4,7 +4,23 @@ import bokeh.plotting as bkplot
 import numpy as np
 
 
-def plot_data(input_data, show_result=True, title="Title", fname="result"):
+def plot_data(input_data, show_result=False, title="Title", fname="result"):
+    """
+    Function for parsing input data and plot it using bokeh library.
+    
+    The data is supossed to contain the results of 3 different tests for
+    a experiment. Hence, it is divided in three arrays where the results
+    for each test is isolated. It is also found the average values and a
+    polynomial curve that fits the given data.
+
+    The plot is calculated and saved to the given file, and plotted if
+    desired to the screen.
+
+    Finally, it is also calculated the polynomial function that fits the
+    x values (duty cycle), according to the y_mean (thrust), reversing
+    the function direction. This way, a function for estimating the 
+    duty cycle can be obtained. This coeficients are returned.
+    """
     bkplot.output_file("./results/{}.html".format(fname))
     plt = bkplot.figure(title=title, x_axis_label='duty cycle',
                         y_axis_label='thust')
@@ -30,7 +46,9 @@ def plot_data(input_data, show_result=True, title="Title", fname="result"):
     plt.legend.location = "bottom_right"
     if show_result:
         bkplot.show(plt)
-    return
+    # Obtain the polynomial for fitting the duty cycle according to the thrust.
+    polyinv_coefs = np.polyfit(y_mean, x, 2)
+    return polyinv_coefs
 
 
 def main():
@@ -42,9 +60,13 @@ def main():
     prop_10cw = data[63:126, :].reshape((3, 21, 2))
     prop_ccw = data[126:189, :].reshape((3, 21, 2))
     # Plot the values
-    plot_data(prop_8cw, title="8 inch CW propeller", fname="cw_8inch")
-    plot_data(prop_10cw, title="10 inch CW propeller", fname="cw_10inch")
-    plot_data(prop_ccw, title="CCW propeller", fname="ccw")
+    coefs_8cw = plot_data(prop_8cw, title="8 inch CW propeller", fname="cw_8inch")
+    coefs_10cw = plot_data(prop_10cw, title="10 inch CW propeller", fname="cw_10inch")
+    coefs_ccw = plot_data(prop_ccw, title="CCW propeller", fname="ccw")
+    coeficients = np.vstack((coefs_8cw, coefs_10cw, coefs_ccw))
+    file_header = "Coeficient A\t\tCoeficient B\t\tCoeficient C"
+    np.savetxt("./results/coeficients.txt", coeficients, fmt='%.6e',
+               delimiter="\t\t", header=file_header)
     return
 
 
