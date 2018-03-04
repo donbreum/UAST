@@ -4,17 +4,17 @@
 // either use pin for servo or for visualizing LED with RC signal
 #define SERVO_OR_LED_PIN 10
 
-#define A1 -7.473476e-05
-#define B1 1.815308e-01
-#define C1 1.288874e+01
+#define C1_1 -7.473476e-05
+#define C2_1 1.815308e-01
+#define C0_1 1.288874e+01
 
-#define A2 -2.511539e-05
-#define	B2	1.134336e-01
-#define	C2 1.760997e+01
+#define C1_2 -2.511539e-05
+#define	C2_2	1.134336e-01
+#define	C0_2 1.760997e+01
 
-#define A3-2.316974e-05
-#define B3 1.150463e-01
-#define	C3 1.752461e+01
+#define C1_2 -2.316974e-05
+#define C2_2 1.150463e-01
+#define	C0_2 1.752461e+01
 
 // Servo and ESC RC signal, else use timer for visualizing LED
 // uncomment to use pin 10 for LED instead of servo
@@ -98,7 +98,7 @@ void select_action(String data){
 
 void set_thrust(int thrust){
 
-  int thrust_converted_to_duty = A1*pow(thrust,2) + B1*thrust + C1;
+  int thrust_converted_to_duty = C1_1*pow(thrust,2) + C2_1*thrust + C0_1;
 
   Serial.print(thrust);
   Serial.print(" thrust converted to ");

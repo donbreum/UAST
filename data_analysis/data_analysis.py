@@ -3,8 +3,7 @@
 import bokeh.plotting as bkplot
 import numpy as np
 
-
-def plot_data(input_data, show_result=False, title="Title", fname="result"):
+def plot_data(input_data, show_result=True, title="Title", fname="result"):
     """
     Function for parsing input data and plot it using bokeh library.
 
@@ -31,7 +30,7 @@ def plot_data(input_data, show_result=False, title="Title", fname="result"):
     y2 = input_data[2, :, 1]
     y_mean = input_data[:, :, 1].mean(axis=0)
     # Get the polynomial fitting for the data average
-    poly_coefs = np.polyfit(x, y_mean, 2)
+    poly_coefs = np.polyfit(x, y_mean, 5)
     poly_parser = np.poly1d(poly_coefs)
     y_fitted = poly_parser(x)
     # Draw the plots on a bakeh figure
@@ -65,7 +64,7 @@ def main():
     coefs_ccw = plot_data(prop_ccw, title="CCW propeller", fname="ccw")
     coeficients = np.vstack((coefs_8cw, coefs_10cw, coefs_ccw))
     file_header = "Coeficient A\t\tCoeficient B\t\tCoeficient C"
-    np.savetxt("./results/coeficients.txt", coeficients, fmt='%.6e',
+    np.savetxt("./results/coeficients.txt", coeficients, fmt='%.3e',
                delimiter="\t\t", header=file_header)
     return
 
