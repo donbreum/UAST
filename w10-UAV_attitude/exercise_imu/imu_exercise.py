@@ -57,6 +57,7 @@ def read_params(line, imu_type, init, ts_now=0):
         ts_now = ts_recv # only the first time
     ts_prev = ts_now
     ts_now = ts_recv
+    diff_t = ts_now - ts_prev
 
     if imu_type == 'sparkfun_razor':
         # import data from a SparkFun Razor IMU (SDU firmware)
@@ -80,10 +81,11 @@ def read_params(line, imu_type, init, ts_now=0):
     # Cluster the read values in 2 NumPy arrays.
     acc = np.array([acc_x, acc_y, acc_z])
     gyro = np.array([gyro_x, gyro_y, gyro_z])
-    return (acc, gyro, ts_now)
+    return (acc, gyro, diff_t)
 
 
-def get_angle_values(filename, imu_type, get_pitch=True, get_roll=True):
+def get_angle_values(filename, imu_type, get_pitch=True, get_roll=True,
+                     get_yaw=True, remove_bias=False):
     """Loop through file and get the desired angle.
     
     TODO: This code should be optimized using vector operations i.e.
@@ -94,12 +96,15 @@ def get_angle_values(filename, imu_type, get_pitch=True, get_roll=True):
     with open(filename, 'r') as f:
         pitch_data = []
         roll_data = []
+        yaw_data = []
+        gyro_data = []
+        diff_t_data = []
+        # The yaw has to be initialized for adding up the new values.
+        yaw = 0
         init = True
         for line in f:
-            acc, gyro, _ = read_params(line, imu_type, init)
-            # Set the flag to False after the 1st iteration.
-            if init:
-                init = False
+            acc, gyro, diff_t = read_params(line, imu_type, init)
+            diff_t_data.append(diff_t)
             # Calculate pitch from the sensor measurements using eq.28
             # Switching pitch-roll naming convention from the provided PDF
             if get_pitch:
@@ -108,7 +113,26 @@ def get_angle_values(filename, imu_type, get_pitch=True, get_roll=True):
             if get_roll:
                 roll = math.atan2(-acc[0], acc[2])
                 roll_data.append(roll*180.0/math.pi)
-    return (pitch_data, roll_data)
+            # Calculate the yaw as an integration of the w_z during the
+            # iteration time.
+            if get_yaw:
+                gyro_data.append(gyro[2])
+                # yaw += gyro[2] * diff_t
+                # yaw_data.append(yaw)
+            # Set the flag to False after the 1st iteration.
+            if init:
+                init = False
+    # After collecting the gyro data, filter the bias
+    if get_yaw:
+        # Convert to NumPy array for speeding up the processing.
+        gyro_data = np.array(gyro_data)
+        if remove_bias:
+            mu = gyro_data.mean()
+            gyro_data -= mu
+        for idx, speed in np.ndenumerate(gyro_data):
+            yaw += speed * diff_t_data[idx[0]]
+            yaw_data.append(yaw)
+    return (pitch_data, roll_data, yaw_data)
 
 
 def lowpass_filter(data, ksize=3):
@@ -124,14 +148,14 @@ def main():
     ##### Insert initialize code below ###################
 
     ## Uncomment the file to read ##
-    noisy_filename = 'imu_razor_data_static.txt'
-    pitch_filename = 'imu_razor_data_pitch_55deg.txt'
-    roll_filename = 'imu_razor_data_roll_65deg.txt'
-    #filename = 'imu_razor_data_yaw_90deg.txt'
+    noisy_filename = "imu_razor_data_static.txt"
+    pitch_filename = "imu_razor_data_pitch_55deg.txt"
+    roll_filename = "imu_razor_data_roll_65deg.txt"
+    yaw_filename = "imu_razor_data_yaw_90deg.txt"
 
     ## IMU type
-    #imu_type = 'vectornav_vn100'
-    imu_type = 'sparkfun_razor'
+    #imu_type = "vectornav_vn100"
+    imu_type = "sparkfun_razor"
 
     ## Variables for plotting ##
     show_plot = True
@@ -139,9 +163,19 @@ def main():
     ## Initialize your variables here ##
     my_value = 0.0
 
-    pitch_data, _ = get_angle_values(pitch_filename, imu_type, get_roll=False)
-    _, roll_data = get_angle_values(roll_filename, imu_type, get_pitch=False)
-    noisy_pitch, noisy_roll = get_angle_values(noisy_filename, imu_type)
+    pitch_data, _, _ = get_angle_values(pitch_filename, imu_type,
+                                        get_roll=False, get_yaw=False)
+    _, roll_data, _ = get_angle_values(roll_filename, imu_type,
+                                       get_pitch=False, get_yaw=False)
+    noisy_pitch, noisy_roll, _ = get_angle_values(noisy_filename, imu_type,
+                                                  get_yaw=False)
+    _, _, yaw_data = get_angle_values(yaw_filename, imu_type,
+                                      get_roll=False, get_pitch=False)
+    _, _, noisy_yaw = get_angle_values(noisy_filename, imu_type,
+                                      get_roll=False, get_pitch=False)
+    _, _, filtered_yaw = get_angle_values(noisy_filename, imu_type,
+                                          get_roll=False, get_pitch=False,
+                                          remove_bias=True)
     filtered_pitch = lowpass_filter(noisy_pitch, ksize=40)
     filtered_roll = lowpass_filter(noisy_roll, ksize=40)
 
@@ -150,11 +184,15 @@ def main():
         draw_plot(pitch_data, "imu_exercise_pitch_plot.png", 
                   "Pitch angles for IMU razor with 55°")
         draw_plot(roll_data, "imu_exercise_roll_plot.png",
-                  "Roll angles for  IMU razor with 65°")
+                  "Roll angles for IMU razor with 65°")
+        draw_plot(yaw_data, "imu_exercise_yaw_plot.png",
+                  "Yaw angles for IMU razor with 90°")
         draw_plot((noisy_pitch, filtered_pitch), "imu_noisy_pitch10_plot.png",
                   "Noisy pitch and mean filtered (K = 40x1)")
         draw_plot((noisy_roll, filtered_roll), "imu_noisy_roll10_plot.png",
                   "Noisy roll and mean filtered (K = 40x1)")
+        draw_plot((noisy_yaw, filtered_yaw), "imu_noisy_yaw_plot.png",
+                  "Yaw angles for IMU razor static")
     return
 
 
