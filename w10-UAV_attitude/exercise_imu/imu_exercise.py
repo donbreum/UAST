@@ -35,7 +35,7 @@ def draw_plot(y_data, out_file="imu_exercise_plot.png", title="title"):
         axes.plot(y_data, linewidth=0.5, color='g')
     fig.suptitle(title, fontsize=20)
     fig.text(0.04, 0.5, "Angle [°]", va='center', rotation='vertical')
-    fig.savefig(out_file)
+    fig.savefig("./results/{}".format(out_file))
     plt.show()
     # 
     # plt.ylabel("Angle [°]")
