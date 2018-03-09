@@ -176,13 +176,14 @@ f.close()
 if showPlot == True:
     ion()
     plt.figure(1)
-    plt.title('Gyro integrated (relative) angle')
+    plt.title('Gyro integrated (relative) angle', fontsize=20)
     plt.plot(plotDataGyro, linewidth=0.5)
     plt.ylim(-60, 10)
     plt.savefig('./results/imu_exercise_gyro.png')
 
     plt.figure(2)
-    plt.title('Accelerometer (blue) & Kalman estimation (red) angles')
+    plt.title('Acc. (blue) & Kalman estimate (red) angles',
+              fontsize=20)
     plt.plot(plotDataAcc,'blue', linewidth=0.5)
     plt.plot(plotDataKalman,'red', linewidth=0.5)
     plt.ylim(-60, 10)
