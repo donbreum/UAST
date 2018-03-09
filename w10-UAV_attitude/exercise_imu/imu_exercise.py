@@ -81,7 +81,7 @@ def read_params(line, imu_type, init, ts_now=0):
     # Cluster the read values in 2 NumPy arrays.
     acc = np.array([acc_x, acc_y, acc_z])
     gyro = np.array([gyro_x, gyro_y, gyro_z])
-    return (acc, gyro, diff_t)
+    return (acc, gyro, diff_t, ts_now)
 
 
 def get_angle_values(filename, imu_type, get_pitch=True, get_roll=True,
@@ -93,6 +93,7 @@ def get_angle_values(filename, imu_type, get_pitch=True, get_roll=True,
     all iterations with a vectorial operation
     (numpy.atan2 instead math.atan2).
     """
+    bias = None
     with open(filename, 'r') as f:
         pitch_data = []
         roll_data = []
@@ -102,8 +103,9 @@ def get_angle_values(filename, imu_type, get_pitch=True, get_roll=True,
         # The yaw has to be initialized for adding up the new values.
         yaw = 0
         init = True
+        ts = 0
         for line in f:
-            acc, gyro, diff_t = read_params(line, imu_type, init)
+            acc, gyro, diff_t, ts = read_params(line, imu_type, init, ts)
             diff_t_data.append(diff_t)
             # Calculate pitch from the sensor measurements using eq.28
             # Switching pitch-roll naming convention from the provided PDF
@@ -127,12 +129,13 @@ def get_angle_values(filename, imu_type, get_pitch=True, get_roll=True,
         # Convert to NumPy array for speeding up the processing.
         gyro_data = np.array(gyro_data)
         if remove_bias:
-            mu = gyro_data.mean()
-            gyro_data -= mu
+            bias = gyro_data.mean()
+            gyro_data -= bias
         for idx, speed in np.ndenumerate(gyro_data):
             yaw += speed * diff_t_data[idx[0]]
-            yaw_data.append(yaw)
-    return (pitch_data, roll_data, yaw_data)
+            yaw_degrees = (yaw*180/math.pi)
+            yaw_data.append(yaw_degrees)
+    return (pitch_data, roll_data, yaw_data, bias)
 
 
 def lowpass_filter(data, ksize=3):
@@ -144,7 +147,7 @@ def lowpass_filter(data, ksize=3):
     return filtered
 
 
-def main():
+def main(show_plot=True):
     ##### Insert initialize code below ###################
 
     ## Uncomment the file to read ##
@@ -155,29 +158,28 @@ def main():
 
     ## IMU type
     #imu_type = "vectornav_vn100"
-    imu_type = "sparkfun_razor"
+    imu_type = "sparkfun_razor"    
 
-    ## Variables for plotting ##
-    show_plot = True
-
-    ## Initialize your variables here ##
-    my_value = 0.0
-
-    pitch_data, _, _ = get_angle_values(pitch_filename, imu_type,
+    pitch_data, _, _, _ = get_angle_values(pitch_filename, imu_type,
                                         get_roll=False, get_yaw=False)
-    _, roll_data, _ = get_angle_values(roll_filename, imu_type,
+    _, roll_data, _, _ = get_angle_values(roll_filename, imu_type,
                                        get_pitch=False, get_yaw=False)
-    noisy_pitch, noisy_roll, _ = get_angle_values(noisy_filename, imu_type,
+    noisy_pitch, noisy_roll, _, _ = get_angle_values(noisy_filename, imu_type,
                                                   get_yaw=False)
-    _, _, yaw_data = get_angle_values(yaw_filename, imu_type,
+    _, _, yaw_data, _ = get_angle_values(yaw_filename, imu_type,
                                       get_roll=False, get_pitch=False)
-    _, _, noisy_yaw = get_angle_values(noisy_filename, imu_type,
+    _, _, noisy_yaw, _ = get_angle_values(noisy_filename, imu_type,
                                       get_roll=False, get_pitch=False)
-    _, _, filtered_yaw = get_angle_values(noisy_filename, imu_type,
+    _, _, filtered_yaw, bias = get_angle_values(noisy_filename, imu_type,
                                           get_roll=False, get_pitch=False,
                                           remove_bias=True)
     filtered_pitch = lowpass_filter(noisy_pitch, ksize=40)
     filtered_roll = lowpass_filter(noisy_roll, ksize=40)
+    pitch_std = np.array(noisy_pitch).std()
+    yaw_std = np.array(filtered_yaw).std()
+    print("Pitch sigma: {}".format(pitch_std))
+    print("Yaw sigma: {}".format(yaw_std))
+    print("Gyro bias: {}".format(bias))
 
     # show the plot
     if show_plot == True:
@@ -187,9 +189,9 @@ def main():
                   "Roll angles for IMU razor with 65°")
         draw_plot(yaw_data, "imu_exercise_yaw_plot.png",
                   "Yaw angles for IMU razor with 90°")
-        draw_plot((noisy_pitch, filtered_pitch), "imu_noisy_pitch10_plot.png",
+        draw_plot((noisy_pitch, filtered_pitch), "imu_noisy_pitch40_plot.png",
                   "Noisy pitch and mean filtered (K = 40x1)")
-        draw_plot((noisy_roll, filtered_roll), "imu_noisy_roll10_plot.png",
+        draw_plot((noisy_roll, filtered_roll), "imu_noisy_roll40_plot.png",
                   "Noisy roll and mean filtered (K = 40x1)")
         draw_plot((noisy_yaw, filtered_yaw), "imu_noisy_yaw_plot.png",
                   "Yaw angles for IMU razor static")
