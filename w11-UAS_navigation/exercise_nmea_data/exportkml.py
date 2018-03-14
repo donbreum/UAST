@@ -29,8 +29,13 @@
 '''
 2015-03-22 Kjeld Removed unnecessary trkptend() function
 2015-11-18 Kjeld Added optional absolute altitude mode
-2018-03-13 Kjeld Added a 
+2018-03-13 Kjeld Added a
+2018-03-14 Per Breum add load gps coordinates from exercise file
 '''
+
+from nmea_read import nmea_class
+import numpy as np
+
 class kmlclass:
 
     def __init__(self):
@@ -45,7 +50,7 @@ class kmlclass:
         self.f.write ('<description>%s</description>\n' % (desc))
         self.f.write ('<Style id="red">\n')
         self.f.write ('  <LineStyle>\n')
-        self.f.write ('    <color>ff0000ff</color>\n')      
+        self.f.write ('    <color>ff0000ff</color>\n')
         self.f.write ('    <width>%.1f</width>\n' % (width))
         self.f.write ('  </LineStyle>\n')
         self.f.write ('</Style>\n')
@@ -87,9 +92,9 @@ class kmlclass:
         self.f.write ('<description>%s</description>\n' % (segdesc))
         self.f.write ('<styleUrl>#%s</styleUrl>\n' % (color))
         self.f.write ('<LineString>\n')
-	if altitude == 'absolute': 
+	if altitude == 'absolute':
 	       self.f.write ('<altitudeMode>absolute</altitudeMode>\n')
-	elif  altitude == 'relativeToGround': 
+	elif  altitude == 'relativeToGround':
 	       self.f.write ('<altitudeMode>relativeToGround</altitudeMode>\n')
         self.f.write ('<coordinates>\n')
         return
@@ -109,19 +114,38 @@ class kmlclass:
         self.f.write ('</kml>')
         self.f.close ()
         return
-        
-if __name__ == "__main__":
-	print 'Creating the file testfile.kml as an example on how tu use kmlclass'
-	# width: defines the line width, use e.g. 0.1 - 1.0
-	kml = kmlclass()
-	kml.begin('testfile.kml', 'Example', 'Example on the use of kmlclass', 0.1)
-	# color: use 'red' or 'green' or 'blue' or 'cyan' or 'yellow' or 'grey'
-	# altitude: use 'absolute' or 'relativeToGround'
-	kml.trksegbegin ('', '', 'red', 'absolute') 
-	kml.trkpt(55.47, 10.33, 0.0)
-	kml.trkpt(55.47, 10.34, 0.0)
-	kml.trkpt(55.48, 10.34, 0.0)
-	kml.trkpt(55.47, 10.33, 0.0)
-	kml.trksegend()
-	kml.end()
 
+if __name__ == "__main__":
+    print 'Creating the file testfile.kml as an example on how tu use kmlclass'
+    #width: defines the line width, use e.g. 0.1 - 1.0
+    kml = kmlclass()
+    kml.begin('testfile.kml', 'Example', 'Example on the use of kmlclass', 0.1)
+    # color: use 'red' or 'green' or 'blue' or 'cyan' or 'yellow' or 'grey'
+    # altitude: use 'absolute' or 'relativeToGround'
+    kml.trksegbegin ('', '', 'red', 'absolute')
+    nmea = nmea_class()
+    nmea.import_file ('nmea_trimble_gnss_eduquad_flight.txt')
+    lat = nmea.get_column(2)
+    lon = nmea.get_column(4)
+    alt = nmea.get_column(9)
+
+    for i in range(len(lat)):
+        kml.trkpt(np.divide(float(lat[i]), 100), np.divide(float(lon[i]), 100), float(alt[i]))
+    kml.trksegend()
+    kml.end()
+
+    kml_ublox = kmlclass()
+    kml_ublox.begin('testfile_ublox.kml', 'Example', 'Example on the use of kmlclass', 0.1)
+    kml_ublox.trksegbegin ('', '', 'red', 'absolute')
+
+    nmea_ublox = nmea_class()
+    nmea_ublox.import_file ('ublox_gpgga.txt')
+    lat_static = nmea_ublox.get_column(2)
+    lon_static = nmea_ublox.get_column(4)
+    alt_static = nmea_ublox.get_column(9)
+
+    nmea = nmea_class()
+    for i in range(len(lat_static)):
+        kml_ublox.trkpt(np.divide(float(lat_static[i]), 100), np.divide(float(lon_static[i]), 100), float(alt_static[i]))
+    kml_ublox.trksegend()
+    kml_ublox.end()
