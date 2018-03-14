@@ -56,6 +56,26 @@ class nmea_class:
               csv = lines[i].split (',') # split into comma separated list
               self.data.append(csv)
 
+    def import_partial_file(self, file_name, criteria_name, scale=1):
+        file_ok = True
+        file = open("test.txt","w")
+        try:
+            # read all lines from the file and strip \n
+            lines = [line.rstrip() for line in open(file_name)]
+        except:
+            file_ok = False
+        if file_ok == True:
+            pt_num = 0
+            for i in range(len(lines)): # for all lines
+                if lines[i][1:6] == criteria_name and i%scale == 1:
+                    if len(lines[i]) > 0 and lines[i][0] != '#' and lines[i][8] != "": # if not a comment or empty line
+                        csv = lines[i].split (',') # split into comma separated list
+                        self.data.append(csv)
+                        file.write(lines[i])
+                        file.write("\n")
+        file.close()
+
+
     def print_data(self):
         for i in range(len(self.data)):
           print self.data[i]
@@ -79,26 +99,23 @@ class nmea_class:
             column = np.append(column, self.data[i][col_num])
         return column
 
-    def plot_data(self, x, y, title, xlabel, ylabel, filename_save):
-        plt.figure(1)
+    def plot_figure(self, x, y, title, xlabel, ylabel, filename_save):
+        fig = plt.figure()
         plt.title(title, fontsize=23)
         plt.plot(x, y, linewidth=1.0)
 
         y_max = np.asfarray(max(y), int) * 1.1
         y_min = np.asfarray(min(y), int) * 0.9
-        print(y_max)
+
         plt.ylim(y_min, y_max)
         plt.xlim(0, x[-1])
         plt.xlabel(xlabel, fontsize=20)
         plt.ylabel(ylabel, fontsize=20)
         plt.show()
-        plt.savefig(filename_save)
-        print('Press enter to quit')
-        input()
+        fig.savefig(filename_save)
+
 
     def plot_nmea_data(self):
-        ion()
-
         # get seconds from timestamp difference from column 1
         time = self.get_time_array()
 
@@ -109,14 +126,27 @@ class nmea_class:
         tracked_satellites = self.get_column(7)
         print(tracked_satellites)
 
-        self.plot_data(time, altitude_msl, "Altitude above MSL measured over time", "Time in seconds", "Height in meters", "altitude_above_msl_measured_over_time")
+        self.plot_figure(time, altitude_msl,
+                       "Altitude above MSL measured over time",
+                       "Time in seconds", "Height in meters",
+                       "altitude_above_msl_measured_over_time")
+
+        self.plot_figure(time, tracked_satellites,
+                      "Number of satellites tracked over time",
+                      "Time in seconds", "Number of satellites",
+                      "number_of_sattelites")
 
 
 if __name__ == "__main__":
-  print 'Importing file'
-  nmea = nmea_class()
-  nmea.import_file ('nmea_trimble_gnss_eduquad_flight.txt')
+    print 'Importing file'
+    nmea = nmea_class()
+    nmea.import_file ('nmea_trimble_gnss_eduquad_flight.txt')
+    nmea.plot_nmea_data()
 
-  #nmea.print_data()
+    nmea_static = nmea_class()
+    nmea_static.import_partial_file ('nmea_ublox_neo_24h_static.txt',
+                                    'GPGGA', 10)
 
-  nmea.plot_nmea_data()
+    nmea_gpgsv = nmea_class()
+    nmea_gpgsv.import_partial_file('nmea_ublox_neo_24h_static.txt',
+                                    'GPGSV', 100)
