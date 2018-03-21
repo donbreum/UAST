@@ -29,7 +29,7 @@ def format_plotting():
     plt.rcParams['ytick.major.width'] = 1
     plt.rcParams['ytick.minor.width'] = 1
     plt.rcParams['legend.frameon'] = True
-    plt.rcParams['legend.loc'] = 'upper right'
+    plt.rcParams['legend.loc'] = 'lower right'
     plt.rcParams['axes.linewidth'] = 1
     plt.rcParams['lines.linewidth'] = 1
     plt.rcParams['lines.markersize'] = 3
@@ -41,21 +41,26 @@ def format_plotting():
     return
 
 
-def path_plot(input_path):
+def path_plot(path_1, path_2=None):
     """Draw on a figure the desired and real paths."""
-    x1, y1 = input_path[:,0], input_path[:,1]
+    x1, y1 = path_1[:,0], path_1[:,1]
     # If there is only one point in the array, an IndexError will be raised.
-    # try:
-    #     x2, y2 = real_route[:,0], real_route[:,1]
-    # except IndexError:
-    #     x2, y2 = real_route[0], real_route[1]
+    try:
+        x2, y2 = path_2[:,0], path_2[:,1]
+    except IndexError:
+        x2, y2 = path_2[0], path_2[1]
     # Draws the figure
     format_plotting()
     ax = plt.subplot(111)
     # Plotting of the 2 lines, with 'point' markers and blue and red colours
-    ax.plot(x1, y1, 'b.-')
-    # ax.plot(x2, y2, 'r.-')
+    ax.plot(x1, y1, 'b.-', label="real path")
+    try:
+        ax.plot(x2, y2, 'r.-', label="approximated path")
+    except:
+        pass
     ax.grid()
+    ax.legend()
+    plt.title("GPS real and corrected path")
     ax.axis('equal')
     # ax.set_xlim([-2000, 2000])
     # ax.set_ylim([-2000, 2000])
