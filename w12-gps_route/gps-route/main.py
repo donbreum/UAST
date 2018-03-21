@@ -6,6 +6,8 @@ Main project executable.
 import numpy as np
 # Third party libraries
 # Local libraries
+from utm import utmconv
+
 
 def parse_data(inputfile="./resources/position.log"):
     """
@@ -21,7 +23,7 @@ def parse_data(inputfile="./resources/position.log"):
         for line in data_file:
             row_data = line.rstrip().split(',')
             # Read only the lines with 9 items, and ignore headers as well.
-            if len(row_data) == 9  and row_data[0][0] != "#":
+            if len(row_data) == 4  and row_data[0][0] != "#":
                 # The first time, the array has to be initialized.
                 if not init:
                     gps_data = np.array(row_data)
@@ -35,6 +37,9 @@ def parse_data(inputfile="./resources/position.log"):
 
 def main():
     gps_data = parse_data()
+    geo_coordinates = gps_data[1:3]
+    uc = utmconv()
+    hemisphere, zone, letter, easting, northing = uc.geodetic_to_utm(test_lat,test_lon)
     return gps_data
 
 
