@@ -8,6 +8,7 @@ import numpy as np
 # Local libraries
 from utm import utmconv
 import plotter
+import polygon_approximation
 
 
 def parse_data(inputfile="./resources/position.log"):
@@ -37,6 +38,7 @@ def parse_data(inputfile="./resources/position.log"):
 
 def main():
     gps_data = parse_data()
+    times = gps_data[:, 0].reshape((-1, 1))
     geo_coordinates = gps_data[:, 1:3]
     utm_values = np.array
     uc = utmconv()
@@ -48,7 +50,9 @@ def main():
         except ValueError:
             utm_values = new_utm_values
     utm_coordinates = utm_values[:, 3:].astype(np.float)
-    plotter.path_plot(utm_coordinates)
+    vertices = polygon_approximation.skimage_rdp(utm_coordinates)
+    plotter.path_plot(utm_coordinates, vertices)
+    utm_coordinates = np.hstack((times, utm_coordinates))
     return utm_coordinates
 
 
