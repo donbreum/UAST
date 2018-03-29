@@ -9,6 +9,7 @@ import numpy as np
 from utm import utmconv
 import plotter
 import polygon_approximation
+import remove_outliers
 
 
 def parse_data(inputfile="./resources/position.log"):
@@ -50,9 +51,17 @@ def main():
         except ValueError:
             utm_values = new_utm_values
     utm_coordinates = utm_values[:, 3:].astype(np.float)
+    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     vertices = polygon_approximation.skimage_rdp(utm_coordinates)
     plotter.path_plot(utm_coordinates, vertices)
     utm_coordinates = np.hstack((times, utm_coordinates))
+    # ex 4.3
+    new_utm = remove_outliers.remove_outliers(utm_coordinates,15,
+                                              plot_data=True)
+
+    # ex. 4.5 - convert back to geo
+
     return utm_coordinates
 
 
