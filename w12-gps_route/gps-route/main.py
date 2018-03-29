@@ -10,7 +10,7 @@ import numpy as np
 from utm import utmconv
 import plotter
 import polygon_approximation
-from pyvisvalingamwhyatt.polysimplify import VWSimplifier
+# from pyvisvalingamwhyatt.polysimplify import VWSimplifier
 import remove_outliers
 
 
@@ -53,7 +53,6 @@ def main():
         except ValueError:
             utm_values = new_utm_values
     utm_coordinates = utm_values[:, 3:].astype(np.float)
-
     vertices = polygon_approximation.skimage_rdp(utm_coordinates)
     mask, marker = polygon_approximation.simplify_lang(10, utm_coordinates,
                                                        step=100)
@@ -64,16 +63,28 @@ def main():
     # plt.plot(rw_simplified[:,0],rw_simplified[:,1])
     # plt.show()
     # plotter.path_plot(utm_coordinates, rw_simplified)
-    plotter.path_plot(utm_coordinates, vertices)
-    utm_data = np.hstack((times, utm_coordinates))
+    #plotter.path_plot(utm_coordinates, vertices)
+    utm_data = np.hstack((utm_values, times))
     # ex 4.3
     utm_data = remove_outliers.remove_outliers(utm_data,15,
-                                              plot_data=True)
-
+                                              plot_data=False)
 
     # ex. 4.5 - convert back to geo
 
-    return new_utm
+    geodetic_values = np.array
+    for point in utm_data:
+        new_geodetic_values = uc.utm_to_geodetic(str(utm_data[:,0][0]),
+                                                 int(utm_data[:,1][0]),
+                                                 float(utm_data[:,3][0]),
+                                                 float(utm_data[:,4][0]))
+        # The first time, the exception is raised and the array is initialized.
+        try:
+            geodetic_values = np.vstack((geodetic_values, new_geodetic_values))
+        except ValueError:
+            geodetic_values = new_geodetic_values
+
+    #import pdb; pdb.set_trace()
+    return utm_coordinates
 
 
 if __name__ == "__main__":
