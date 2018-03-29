@@ -1,30 +1,35 @@
 #!/usr/bin/python3
 import numpy as np
+import plotter
 import matplotlib.pyplot as plt
 
 # max speed is set to 15 m/s (54 km/h).
 # normal max speed for common drones
-def remove_outliers(utm_c, max_speed=15., plot_data=False):
+def remove_outliers(utm_data, max_speed=15., plot_data=False):
 
-    utm_c2 = np.vstack((utm_c[0, :], utm_c))
-    diff = utm_c - utm_c2[:-1]
-    speed = np.hypot(diff[:, 1], diff[:, 2]) / diff[:,0]
-    new_utm = utm_c[speed < max_speed]
-    #import pdb; pdb.set_trace()
+    utm_data_temp = utm_data[:,3:6].astype(np.float)
+    utm_c2 = np.vstack((utm_data_temp[0, :], utm_data_temp))
+    diff = utm_data_temp - utm_c2[:-1]
 
+    speed = np.hypot(diff[:, 0], diff[:, 1]) / diff[:,2]
+    utm_data = utm_data[speed < max_speed]
+
+    # import pdb; pdb.set_trace()
     if plot_data:
-        fig = plt.figure()
-        plt.hold(True)
-        plt.xlabel("UTM N", fontsize=20)
-        plt.ylabel("UTM E", fontsize=20)
-        plt.title("Result after removing outliers", fontsize=23)
-
-        plt.plot(utm_c[:,1], utm_c[:,2], color="blue",
-                 linewidth=1.5, linestyle=":", label='Original data')
-        plt.plot(new_utm[:,1], new_utm[:,2], color="red", linewidth=1.5,
-                 label='Outlier filtered data')
-        plt.legend(loc=0)
+        utm = utm_data_temp[speed < max_speed]
+        # fig = plt.figure()
+        # plt.hold(True)
+        # plt.xlabel("UTM N", fontsize=20)
+        # plt.ylabel("UTM E", fontsize=20)
+        # plt.title("Result after removing outliers", fontsize=23)
+        #
+        # plt.plot(utm_data_temp[:,0], utm_data_temp[:,1], color="blue",
+        #          linewidth=1.5, linestyle=":", label='Original data')
+        # plt.plot(utm[:,0], utm[:,1], color="red", linewidth=1.5,
+        #          label='Outlier filtered data')
+        # plt.legend(loc=0)
         #plt.show()
-        fig.savefig("resources/result_removing_outliers.png")
+        plotter.path_plot(utm_data_temp[:,0:2], utm[:,0:2])
+        #fig.savefig("resources/result_removing_outliers.png")
         #plt.close()
-    return new_utm[:,1:3]
+    return utm_data[:,0:5]
