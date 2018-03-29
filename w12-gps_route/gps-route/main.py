@@ -53,6 +53,7 @@ def main():
         except ValueError:
             utm_values = new_utm_values
     utm_coordinates = utm_values[:, 3:].astype(np.float)
+
     vertices = polygon_approximation.skimage_rdp(utm_coordinates)
     mask, marker = polygon_approximation.simplify_lang(10, utm_coordinates,
                                                        step=100)
@@ -64,9 +65,9 @@ def main():
     # plt.show()
     # plotter.path_plot(utm_coordinates, rw_simplified)
     plotter.path_plot(utm_coordinates, vertices)
-    utm_coordinates = np.hstack((times, utm_coordinates))
+    utm_data = np.hstack((times, utm_coordinates))
     # ex 4.3
-    new_utm = remove_outliers.remove_outliers(utm_coordinates,15,
+    utm_data = remove_outliers.remove_outliers(utm_data,15,
                                               plot_data=True)
 
 
