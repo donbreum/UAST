@@ -29,7 +29,7 @@
 """
 The tranmerc implements conversion between geodetic coordinates and the
 Transverse Mercator projection.
- 
+
 A substantial portion of the algorithms used in this class are derived from
 an implemtation in C by the U.S. Army Topographic Engineering Center,
 Geospatial Information Division. The C source files state that no license
@@ -44,7 +44,7 @@ apply to those. The implementation is based on the references:
 It should be noted that newer implementations of algorithms for the
 Transverse Mercator projection that are more accurate and more efficient are
 avilable. For instance the GeographicLib TransverseMercator (C++) documented
-here: 
+here:
 
   "Charles F. F. Karney. Transverse Mercator with an accuracy of a few
    nanometers. J. Geodesy 85(8), 475-485 (Aug. 2011)
@@ -95,13 +95,13 @@ class tranmerc():
         self.rad_to_deg = 180.0/pi
 
     def set_params (self, a, f, origin_latitude, central_meridian, false_easting, false_northing, scale_factor):
-        self.a = a 
-        self.f = f 
+        self.a = a
+        self.f = f
         self.central_meridian = central_meridian
-        self.origin_lat = origin_latitude 
-        self.false_e = false_easting 
+        self.origin_lat = origin_latitude
+        self.false_e = false_easting
         self.false_n = false_northing
-        self.scale = scale_factor 
+        self.scale = scale_factor
 
         self.origin_lon = central_meridian
         self.es = 2*self.f - self.f**2 # eccentricity squared
@@ -144,8 +144,8 @@ class tranmerc():
         eta3 = eta**3
         eta4 = eta**4
 
-        sn = self.sphsn(lat) 
-        tmd = self.sphtmd(lat) 
+        sn = self.sphsn(lat)
+        tmd = self.sphtmd(lat)
         tmdo = self.sphtmd(self.origin_lat) # origin
 
         # northing
@@ -166,10 +166,10 @@ class tranmerc():
 
     def tranmerc_to_geodetic (self, easting, northing):
         tmdo = self.sphtmd(self.origin_lat) # true Meridional Distances for latitude of origin
-        tmd = tmdo + (northing - self.false_n)/self.scale # origin 
+        tmd = tmdo + (northing - self.false_n)/self.scale # origin
         sr = self.sphsr(0.0) # first estimate
         ftphi = tmd/sr
-        for i in xrange (5):
+        for i in range (5):
             t10 = self.sphtmd (ftphi)
             sr = self.sphsr(ftphi)
             ftphi += (tmd - t10)/sr
@@ -188,7 +188,7 @@ class tranmerc():
         de = easting - self.false_e
         if fabs(de) < 0.0001:
             de = 0.0
-            
+
         # calculate the latitude
         t10 = t / (2.0 * sr * sn * self.scale**2)
         t11 = t * (5.0  + 3.0 * tan2 + eta - 4.0 * eta**2 - 9.0 * tan2 * eta) / (24.0 * sr * sn**3 * self.scale**4)
@@ -203,7 +203,7 @@ class tranmerc():
         t17 = (61.0 +  662.0 * tan2 + 1320.0 * tan4 + 720.0 * t**6) / (5040.0 * sn**7 * c * self.scale**7)
         dlam = de * t14 - de**3 * t15 + de**5 * t16 - de**7 * t17 # difference in longitude
         lon = self.origin_lon + dlam
-            
+
         while lat > pi/2.0:
             lat = pi - lat
             lon += pi
@@ -215,7 +215,7 @@ class tranmerc():
             lon += pi
             if lon > pi:
                 lon -= 2*pi
-            
+
         if lon > 2*pi:
             lon -= 2*pi
         if lon < -pi:
@@ -223,7 +223,7 @@ class tranmerc():
 
         return (lat, lon)
 
-    def sphsn (self, lat): 
+    def sphsn (self, lat):
         return self.a/sqrt(1.0 - self.es*sin(lat)**2)
 
     def sphtmd (self, lat):
