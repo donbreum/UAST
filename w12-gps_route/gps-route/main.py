@@ -3,12 +3,14 @@
 Main project executable.
 """
 # Standard libraries
+import matplotlib.pyplot as plt
 import numpy as np
 # Third party libraries
 # Local libraries
 from utm import utmconv
 import plotter
 import polygon_approximation
+from pyvisvalingamwhyatt.polysimplify import VWSimplifier
 import remove_outliers
 
 
@@ -51,18 +53,26 @@ def main():
         except ValueError:
             utm_values = new_utm_values
     utm_coordinates = utm_values[:, 3:].astype(np.float)
-    import pdb; pdb.set_trace()
-    #import pdb; pdb.set_trace()
     vertices = polygon_approximation.skimage_rdp(utm_coordinates)
+    mask, marker = polygon_approximation.simplify_lang(10, utm_coordinates,
+                                                       step=100)
+    simplified = utm_coordinates[mask]
+    #deleted points
+    # deleted = utm_coordinates[np.logical_not(mask)]
+    # plt.scatter(deleted[:,0],deleted[:,1],color='red',marker='x',s=50,linewidth=2.0)
+    # plt.plot(rw_simplified[:,0],rw_simplified[:,1])
+    # plt.show()
+    # plotter.path_plot(utm_coordinates, rw_simplified)
     plotter.path_plot(utm_coordinates, vertices)
     utm_coordinates = np.hstack((times, utm_coordinates))
     # ex 4.3
     new_utm = remove_outliers.remove_outliers(utm_coordinates,15,
                                               plot_data=True)
 
+
     # ex. 4.5 - convert back to geo
 
-    return utm_coordinates
+    return new_utm
 
 
 if __name__ == "__main__":
