@@ -7,11 +7,18 @@ import math
 import numpy as np
 import skimage.measure
 # Third party libraries
+import visvalingamwyatt as vw
+import plotter
 # Local libraries
+
+def wyatt(points, number_of_wp):
+    simplifier = vw.Simplifier(points[:,3:].astype(np.float))
+    simplified_path = simplifier.simplify(number_of_wp)
+    return simplified_path
 
 def point_line_distance(x0,y0,x1,y1,x2,y2):
     return abs((x2-x1)*(y1-y0)-(x1-x0)*(y2-y1)) / math.sqrt((x2-x1)*(x2-x1)
-                                                            + (y2-y1)*(y2-y1))  
+                                                            + (y2-y1)*(y2-y1))
 
 def point_point_distance(x1,y1,x2,y2):
     dx = x2-x1
@@ -39,28 +46,28 @@ def simplify_reumann_witkam(tolerance, p, step=-1):
     first = 0
     second = 1
     third = 2
-    
+
     marker = np.array([p[first],p[second],p[third]],dtype='double')
-    
+
     if step == -1:
         maxstep = len(p)
     else:
         maxstep = min(step,len(p))
 
     for i in range(0,min(maxstep,len(p)-2)):
-        
+
         dist = point_line_distance(p[third,0],p[third,1],p[first,0],p[first,1],
                                    p[second,0],p[second,1])
         #print dist
         if dist <= tolerance:
             mask[third] = False
-            third = third+1 
+            third = third+1
         else:
             first = second
             second = third
             third = third+1
         marker = np.array([p[first],p[second]],dtype='double')
-            
+
     return mask,marker
 
 
@@ -70,9 +77,9 @@ def simplify_opheim(tolerance,maxdist,p,step=-1):
     first = 0
     second = 1
     third = 2
-    
+
     marker = np.array([p[first],p[second]],dtype='double')
-    
+
     if step == -1:
         maxstep = len(p)
     else:
@@ -84,7 +91,7 @@ def simplify_opheim(tolerance,maxdist,p,step=-1):
         if ldist <= tolerance and pdist < maxdist:
             mask[second] = False
             second = third
-            third = third+1 
+            third = third+1
         else:
             first = second
             second = third
@@ -96,9 +103,9 @@ def simplify_lang(tolerance,p,step):
     mask = np.ones(len(p),dtype='bool')
     start = 0
     end = 2
-    
+
     marker = np.array([p[start],p[end]],dtype='double')
-    
+
     if step == -1:
         maxstep = len(p)
     else:
@@ -121,6 +128,6 @@ def simplify_lang(tolerance,p,step):
         else:
             end = end+1
     mask[start+1:end-1]=False
-    
-    
+
+
     return mask,marker
