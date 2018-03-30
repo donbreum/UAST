@@ -15,6 +15,8 @@ import remove_outliers
 from hermite import cubic_hermite_spline
 from pylab import *
 
+import utm_geo_convert
+
 def parse_data(inputfile="./resources/position.log"):
     """
     Read the specified file and return an array with the parsed data.
@@ -40,20 +42,14 @@ def parse_data(inputfile="./resources/position.log"):
     return gps_data
 
 
-def main():
+def main(plots=False):
     gps_data = parse_data()
     times = gps_data[:, 0].reshape((-1, 1))
     geo_coordinates = gps_data[:, 1:3]
-    utm_values = np.array
-    uc = utmconv()
-    for point in geo_coordinates:
-        new_utm_values = uc.geodetic_to_utm(point[0], point[1])
-        # The first time, the exception is raised and the array is initialized.
-        try:
-            utm_values = np.vstack((utm_values, new_utm_values))
-        except ValueError:
-            utm_values = new_utm_values
+    utm_values = utm_geo_convert.geodetic_to_utm(geo_coordinates)
+
     utm_coordinates = utm_values[:, 3:].astype(np.float)
+
     vertices = polygon_approximation.skimage_rdp(utm_coordinates)
     mask, marker = polygon_approximation.simplify_lang(10, utm_coordinates,
                                                        step=100)
@@ -72,30 +68,21 @@ def main():
                                               plot_data=False)
 
     # ex. 4.5 - convert back to geo
-
-    geodetic_values = np.array
-    for point in utm_data:
-        new_geodetic_values = uc.utm_to_geodetic(str(utm_data[:,0][0]),
-                                                 int(utm_data[:,1][0]),
-                                                 float(utm_data[:,3][0]),
-                                                 float(utm_data[:,4][0]))
-        # The first time, the exception is raised and the array is initialized.
-        try:
-            geodetic_values = np.vstack((geodetic_values, new_geodetic_values))
-        except ValueError:
-            geodetic_values = new_geodetic_values
+    filtered_geo_coordinates = utm_geo_convert.utm_to_geodetic(utm_data)
 
     # ex 4.7 - fixed wing path cubic hermite spline
     utm_coordinates = utm_data[:,3:5].astype(np.float)
     vertices = polygon_approximation.skimage_rdp(utm_coordinates)
-    #plotter.path_plot(utm_coordinates, vertices)
-    #import pdb; pdb.set_trace()
+    if(plots):
+        plotter.path_plot(utm_coordinates, vertices)
+
     chs = cubic_hermite_spline();
     splines = chs.get_path(vertices)
-
-    plotter.path_plot(vertices, splines)
+    #import pdb; pdb.set_trace()
+    if(plots):
+        plotter.path_plot(vertices, splines)
 
     return utm_coordinates
 
 if __name__ == "__main__":
-    gps_data = main()
+    gps_data = main(plots=False)
