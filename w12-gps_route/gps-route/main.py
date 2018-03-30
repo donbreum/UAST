@@ -76,10 +76,10 @@ def main(plots=False):
     if(plots):
         plotter.path_plot(utm_coordinates, vertices)
 
-    chs = cubic_hermite_spline();
-    splines = chs.get_path(vertices)
     #import pdb; pdb.set_trace()
     if(plots):
+        chs = cubic_hermite_spline();
+        splines = chs.get_path(vertices)
         plotter.path_plot(vertices, splines)
 
     return utm_coordinates
