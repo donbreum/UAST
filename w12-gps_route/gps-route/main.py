@@ -12,7 +12,8 @@ import plotter
 import polygon_approximation
 # from pyvisvalingamwhyatt.polysimplify import VWSimplifier
 import remove_outliers
-
+from hermite import cubic_hermite_spline
+from pylab import *
 
 def parse_data(inputfile="./resources/position.log"):
     """
@@ -57,6 +58,7 @@ def main():
     mask, marker = polygon_approximation.simplify_lang(10, utm_coordinates,
                                                        step=100)
     simplified = utm_coordinates[mask]
+
     #deleted points
     # deleted = utm_coordinates[np.logical_not(mask)]
     # plt.scatter(deleted[:,0],deleted[:,1],color='red',marker='x',s=50,linewidth=2.0)
@@ -83,9 +85,17 @@ def main():
         except ValueError:
             geodetic_values = new_geodetic_values
 
+    # ex 4.7 - fixed wing path cubic hermite spline
+    utm_coordinates = utm_data[:,3:5].astype(np.float)
+    vertices = polygon_approximation.skimage_rdp(utm_coordinates)
+    #plotter.path_plot(utm_coordinates, vertices)
     #import pdb; pdb.set_trace()
-    return utm_coordinates
+    chs = cubic_hermite_spline();
+    splines = chs.get_path(vertices)
 
+    plotter.path_plot(vertices, splines)
+
+    return utm_coordinates
 
 if __name__ == "__main__":
     gps_data = main()
