@@ -10,7 +10,8 @@ import numpy as np
 from utm import utmconv
 import plotter
 import polygon_approximation
-# from pyvisvalingamwhyatt.polysimplify import VWSimplifier
+
+#from visvalingamwyatt.polysimplify import VWSimplifier
 import remove_outliers
 from hermite import cubic_hermite_spline
 from pylab import *
@@ -47,7 +48,6 @@ def main(plots=False):
     times = gps_data[:, 0].reshape((-1, 1))
     geo_coordinates = gps_data[:, 1:3]
     utm_values = utm_geo_convert.geodetic_to_utm(geo_coordinates)
-
     utm_coordinates = utm_values[:, 3:].astype(np.float)
 
     vertices = polygon_approximation.skimage_rdp(utm_coordinates)
@@ -55,28 +55,23 @@ def main(plots=False):
                                                        step=100)
     simplified = utm_coordinates[mask]
 
-    #deleted points
-    # deleted = utm_coordinates[np.logical_not(mask)]
-    # plt.scatter(deleted[:,0],deleted[:,1],color='red',marker='x',s=50,linewidth=2.0)
-    # plt.plot(rw_simplified[:,0],rw_simplified[:,1])
-    # plt.show()
-    # plotter.path_plot(utm_coordinates, rw_simplified)
-    #plotter.path_plot(utm_coordinates, vertices)
     utm_data = np.hstack((utm_values, times))
     # ex 4.3
-    utm_data = remove_outliers.remove_outliers(utm_data,15,
+    filtered_utm_data = remove_outliers.remove_outliers(utm_data,15,
                                               plot_data=False)
-
+    # ex. 4.4 - simplify path
+    filtered_utm_coordinates = filtered_utm_data[:,3:5].astype(np.float)
+    vertices = polygon_approximation.skimage_rdp(filtered_utm_coordinates)
+    simplified_path = polygon_approximation.wyatt(utm_values, 10)
+    pt = polygon_approximation.minimize_distance(filtered_utm_coordinates, 0.2)
+    plotter.path_plot(pt, filtered_utm_coordinates, vertices)
+    if(plots):
+        plotter.path_plot(pt, filtered_utm_coordinates, vertices)
+    # import pdb; pdb.set_trace()
     # ex. 4.5 - convert back to geo
     filtered_geo_coordinates = utm_geo_convert.utm_to_geodetic(utm_data)
 
     # ex 4.7 - fixed wing path cubic hermite spline
-    utm_coordinates = utm_data[:,3:5].astype(np.float)
-    vertices = polygon_approximation.skimage_rdp(utm_coordinates)
-    if(plots):
-        plotter.path_plot(utm_coordinates, vertices)
-
-    #import pdb; pdb.set_trace()
     if(plots):
         chs = cubic_hermite_spline();
         splines = chs.get_path(vertices)

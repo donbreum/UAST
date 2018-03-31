@@ -11,9 +11,35 @@ import visvalingamwyatt as vw
 import plotter
 # Local libraries
 
+def minimize_distance(points, threshold=0.2):
+    bool_tmp = [True]*len(points)
+    it = 0 # number in the list currently being inspected from
+
+    for x in range(len(points)-2):
+        skip = 0
+        while True:
+            if (x+2+skip+it) < (len(points)-2):
+                x0, y0 = points[x+it][0], points[x+it][1]
+                x1, y1 = points[x+1+it][0], points[x+1+it][1]
+                x2, y2 = points[x+2+skip+it][0], points[x+2+skip+it][1]
+                dist = point_line_distance(x0,y0,x1,y1,x2,y2)
+            else:
+                break
+            if dist > threshold:
+                break
+            else:
+                bool_tmp[x+1+it] = False
+                skip += 1
+                it += 1
+    new_wp = points[bool_tmp]
+    print ("Number of wp",len(new_wp))
+    # import pdb; pdb.set_trace()
+    return new_wp
+
 def wyatt(points, number_of_wp):
     simplifier = vw.Simplifier(points[:,3:].astype(np.float))
     simplified_path = simplifier.simplify(number_of_wp)
+
     return simplified_path
 
 def point_line_distance(x0,y0,x1,y1,x2,y2):
