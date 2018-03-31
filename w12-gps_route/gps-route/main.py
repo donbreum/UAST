@@ -63,8 +63,11 @@ def main(plots=False):
     filtered_utm_coordinates = filtered_utm_data[:,3:5].astype(np.float)
     vertices = polygon_approximation.skimage_rdp(filtered_utm_coordinates)
     simplified_path = polygon_approximation.wyatt(utm_values, 10)
-    pt = polygon_approximation.minimize_distance(filtered_utm_coordinates, 0.2)
-    plotter.path_plot(pt, filtered_utm_coordinates, vertices)
+    min_dist_path = polygon_approximation.minimize_distance_and_angle(
+        filtered_utm_coordinates, 0.2)
+    min_dist_path_angle = polygon_approximation.minimize_distance_and_angle(
+        filtered_utm_coordinates, 0.2, True, 45)
+    #plotter.path_plot(ttt, filtered_utm_coordinates, vertices)
     if(plots):
         plotter.path_plot(pt, filtered_utm_coordinates, vertices)
     # import pdb; pdb.set_trace()

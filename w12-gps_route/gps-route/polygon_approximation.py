@@ -11,7 +11,16 @@ import visvalingamwyatt as vw
 import plotter
 # Local libraries
 
-def minimize_distance(points, threshold=0.2):
+
+def minimize_distance_and_angle(points, threshold=0.2, use_angle=False,
+                                angle_threshold=0):
+    """
+    Function for minimizing distance deviation and angle deviation
+    from original track
+
+    If no angle is specified in the function call only the distance
+    is considered in the calculations
+    """
     bool_tmp = [True]*len(points)
     it = 0 # number in the list currently being inspected from
 
@@ -23,9 +32,13 @@ def minimize_distance(points, threshold=0.2):
                 x1, y1 = points[x+1+it][0], points[x+1+it][1]
                 x2, y2 = points[x+2+skip+it][0], points[x+2+skip+it][1]
                 dist = point_line_distance(x0,y0,x1,y1,x2,y2)
+                if use_angle:
+                    ang_diff = angle_diff_points(x0,y0,x1,y1,x2,y2)
+                else:
+                    ang_diff = 1
             else:
                 break
-            if dist > threshold:
+            if (dist > threshold) and (ang_diff > angle_threshold):
                 break
             else:
                 bool_tmp[x+1+it] = False
@@ -39,8 +52,18 @@ def minimize_distance(points, threshold=0.2):
 def wyatt(points, number_of_wp):
     simplifier = vw.Simplifier(points[:,3:].astype(np.float))
     simplified_path = simplifier.simplify(number_of_wp)
-
     return simplified_path
+
+def angle_diff_points(x0,y0,x1,y1,x2,y2):
+    dx1 = x1 - x0
+    dy1 = y1 - y0
+    dx2 = x2 - x0
+    dy2 = y2 - y0
+
+    theta1 = math.degrees(math.atan(dy1/dx1))
+    theta2 = math.degrees(math.atan(dy2/dx2))
+    # import pdb; pdb.set_trace()
+    return abs(theta1-theta2)
 
 def point_line_distance(x0,y0,x1,y1,x2,y2):
     return abs((x2-x1)*(y1-y0)-(x1-x0)*(y2-y1)) / math.sqrt((x2-x1)*(x2-x1)
