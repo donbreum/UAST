@@ -9,11 +9,11 @@ import numpy as np
 # Local libraries
 from utm import utmconv
 import plotter
-import polygon_approximation
 
 #from visvalingamwyatt.polysimplify import VWSimplifier
-import remove_outliers
 from hermite import cubic_hermite_spline
+from polygon_approximation import simplify_polygons
+from outliers import remove_outliers
 from pylab import *
 
 import utm_geo_convert
@@ -49,24 +49,25 @@ def main(plots=False):
     geo_coordinates = gps_data[:, 1:3]
     utm_values = utm_geo_convert.geodetic_to_utm(geo_coordinates)
     utm_coordinates = utm_values[:, 3:].astype(np.float)
-
-    vertices = polygon_approximation.skimage_rdp(utm_coordinates)
-    mask, marker = polygon_approximation.simplify_lang(10, utm_coordinates,
+    sp = simplify_polygons()
+    vertices = sp.skimage_rdp(utm_coordinates)
+    mask, marker = sp.simplify_lang(10, utm_coordinates,
                                                        step=100)
     simplified = utm_coordinates[mask]
 
     utm_data = np.hstack((utm_values, times))
     # ex 4.3
-    filtered_utm_data = remove_outliers.remove_outliers(utm_data,15,
-                                              plot_data=False)
+    ro = remove_outliers()
+    filtered_utm_data = ro.remove_outliers(utm_data,15, plot_data=False)
     # ex. 4.4 - simplify path
     filtered_utm_coordinates = filtered_utm_data[:,3:5].astype(np.float)
-    vertices = polygon_approximation.skimage_rdp(filtered_utm_coordinates)
-    wyatt = polygon_approximation.wyatt(utm_values, 10)
-    min_dist_path = polygon_approximation.minimize_distance_and_angle(
-        filtered_utm_coordinates, 0.2)
-    min_dist_path_angle = polygon_approximation.minimize_distance_and_angle(
+    vertices = sp.skimage_rdp(filtered_utm_coordinates)
+    wyatt = sp.wyatt(utm_values, 10)
+    min_dist_path = sp.minimize_distance_and_angle(filtered_utm_coordinates,
+                                                   0.2)
+    min_dist_path_angle = sp.minimize_distance_and_angle(
         filtered_utm_coordinates, 0.2, True, 45)
+
     if(plots):
         plotter.path_plot(filtered_utm_coordinates, vertices, wyatt,
                           min_dist_path, min_dist_path_angle)
