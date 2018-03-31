@@ -21,7 +21,7 @@ def minimize_distance_and_angle(points, threshold=0.2, use_angle=False,
     If no angle is specified in the function call only the distance
     is considered in the calculations
     """
-    bool_tmp = [True]*len(points)
+    bool_tmp = [True]*len(points) # initially all points are good
     it = 0 # number in the list currently being inspected from
 
     for x in range(len(points)-2):
@@ -45,8 +45,6 @@ def minimize_distance_and_angle(points, threshold=0.2, use_angle=False,
                 skip += 1
                 it += 1
     new_wp = points[bool_tmp]
-    print ("Number of wp",len(new_wp))
-    # import pdb; pdb.set_trace()
     return new_wp
 
 def wyatt(points, number_of_wp):
