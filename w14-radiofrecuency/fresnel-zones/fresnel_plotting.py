@@ -59,6 +59,7 @@ def plot_ellipsoids(distance = 100, frequency=1*10**9):
     plt.show()
     return
 
+
 def fresnel_2d(distance=100, frequency=1*10**9, out_file="result.eps",
                show=False):
     """
@@ -112,10 +113,52 @@ def fresnel_2d(distance=100, frequency=1*10**9, out_file="result.eps",
     return
 
 
+def fresnel_blocking(altitude=50, horizontal_d=400, frequency=1*10**9,
+                     out_file="result.eps", show=False):
+    # Wave parameters
+    c = 3 * 10**8
+    wavelength = c / frequency
+    # Frequency values formatted for axis name.
+    frequency_val = frequency / 10**9
+    hz_prefix = "G"
+    if frequency_val < 1:
+        frequency_val *= 1000
+        hz_prefix = "M"
+    # Get geometric values using trigonometry and Pitagoras.
+    angle = np.arctan(altitude/horizontal_d)
+    distance = np.hypot(horizontal_d, altitude)
+    d1 = np.linspace(0, distance+1, horizontal_d+2)
+    d2 = distance - d1
+    # Calculate Fresnel radii, altitude from ground, and blocking of
+    # 1st Fresnel zone.
+    fresnel_1 = np.sqrt((1*wavelength*d1*d2) / (d1+d2))
+    altitudes = d1 * np.sin(angle)
+    blocking = altitudes / fresnel_1
+    blocking[blocking>1] = 1
+    blocking = 100 - (blocking*50 + 50)
+    # Plot values.
+    plt.figure()
+    plt.plot(blocking)
+    # Add auxiliary elements to graph.
+    plt.grid()
+    plt.title("Blocking of Fresnel 1st zone for {}{}Hz frequency".format(frequency_val,
+                                                          hz_prefix))
+    plt.xlabel('Distance from point A (m)')
+    plt.ylabel('Fresnel 1st zone blocking(%)')
+    format_plotting()
+    script_path = os.path.dirname(os.path.realpath(__file__))
+    plt.savefig('{}/tmp/{}'.format(script_path, out_file), bbox_inches='tight')
+    if show:
+        plt.show()
+    return
+
+
 def main():
     fresnel_2d(frequency=2.4*10**9, out_file="fresnel_2.4ghz.eps")
     fresnel_2d(frequency=433*10**6, out_file="fresnel_433mhz.eps")
     fresnel_2d(frequency=5.8*10**9, out_file="fresnel_5.8ghz.eps")
+    fresnel_blocking(frequency=433*10**6, out_file="blocking_433mhz.eps")
+    fresnel_blocking(frequency=2.4*10**9, out_file="blocking_2.4ghz.eps")
     return
 
 
