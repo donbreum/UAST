@@ -73,20 +73,29 @@ def on_mavlink_msg (msg):
     if msg.msg_id == MAVLINK_MSG_ID_MISSION_COUNT:
         (count)= struct.unpack('<HBB', msg.payload)
         cnt = count[0]
-        print cnt
         if(cnt > 0):
             get_mission_items(cnt)
         else:
             print("No missionlist on drone")
     if msg.msg_id == MAVLINK_MSG_ID_MISSION_ITEM:
-        (param1, param2, param3, param4, x, y, z, seq, command, target_system, target_component, frame, current, autocontinue)= struct.unpack('<fffffffHHBBBBB', msg.payload)
-        print (x, y, z, seq, command, current)
+        (param1, param2, param3, param4, x, y, z, seq,
+            command, target_system, target_component, frame, current,
+            autocontinue) = struct.unpack('<fffffffHHBBBBB', msg.payload)
+        #   print (x, y, z, seq, command, current)
+        print_mission_waypoints(x, y, z, seq)
+
+# simple version printing only lattitude, longitude and altitude
+def print_mission_waypoints(lat, lon, alt, seq):
+    print ("Waypoint " + str(seq+1) + " Lat: " + str(lat) + " Lon: " +
+           str(lon) + " Alt: " + str(alt))
+
 
 def send_mission_ack():
     msg.header.stamp = rospy.Time.now()
     msg.msg_id = MAVLINK_MSG_ID_MISSION_ACK
     msg.payload_len = MAVLINK_MSG_ID_MISSION_ACK_LEN
     # type is hardcoded to 1 (meaning no error)
+    # need for check if all went okay and then sent rospy shutdown signal
     msg.payload = struct.pack('<BBB', target_system, target_component, 1)
     mavlink_msg_pub.publish(msg)
 
@@ -108,8 +117,11 @@ def send_request_mission_list():
 
 # launch node
 rospy.init_node('mavlink_lora_get_mission_list')
-mavlink_msg_pub = rospy.Publisher(mavlink_lora_pub_topic, mavlink_lora_msg, queue_size=0) # mavlink_msg publisher
-rospy.Subscriber(mavlink_lora_sub_topic, mavlink_lora_msg, on_mavlink_msg) # mavlink_msg subscriber
+ # mavlink_msg publisher
+mavlink_msg_pub = rospy.Publisher(mavlink_lora_pub_topic, mavlink_lora_msg,
+                  queue_size=0)
+ # mavlink_msg subscriber
+rospy.Subscriber(mavlink_lora_sub_topic, mavlink_lora_msg, on_mavlink_msg)
 rate = rospy.Rate(update_interval)
 rospy.sleep (1) # wait until everything is running
 
@@ -120,6 +132,5 @@ while not (rospy.is_shutdown()):
         print 'Requesting mission list'
         send_request_mission_list()
         request_sent = True
-
     # sleep the defined interval
     rate.sleep()
