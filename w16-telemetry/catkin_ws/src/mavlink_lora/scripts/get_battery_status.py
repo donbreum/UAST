@@ -60,13 +60,26 @@ msg = mavlink_lora_msg()
 request_sent = False
 
 def on_mavlink_msg (msg):
-	if msg.msg_id == MAVLINK_MSG_ID_BATTERY_STATUS:
-		(battery) = struct.unpack('<iih10HhBBBb', msg.payload)
-		print battery
+    if msg.msg_id == MAVLINK_MSG_ID_BATTERY_STATUS:
+        (battery) = struct.unpack('<iih10HhBBBb', msg.payload)
+        print_battery_voltage(battery)
+
+def print_battery_voltage(battery):
+    cell_voltage = battery[3:13]
+    total_voltage = 0
+    cell_num = 1
+    for cell in cell_voltage:
+        if not cell == 65535:
+            total_voltage += cell
+            #printing individual cell is only valid if they are monitored
+            print ("Cell: " + str(cell_num) + " " + str(cell/1000.0) + " volt")
+            cell_num += 1
+    print ("Total Voltage: ", total_voltage)
 
 # launch node
 rospy.init_node('mavlink_lora_get_parameter_list')
-rospy.Subscriber(mavlink_lora_sub_topic, mavlink_lora_msg, on_mavlink_msg) # mavlink_msg subscriber
+# mavlink_msg subscriber
+rospy.Subscriber(mavlink_lora_sub_topic, mavlink_lora_msg, on_mavlink_msg)
 rate = rospy.Rate(update_interval)
 rospy.sleep (1) # wait until everything is running
 
