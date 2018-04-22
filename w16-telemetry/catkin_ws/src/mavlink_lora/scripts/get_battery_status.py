@@ -77,7 +77,7 @@ def print_battery_voltage(battery):
     print ("Total Voltage: ", total_voltage)
 
 # launch node
-rospy.init_node('mavlink_lora_get_parameter_list')
+rospy.init_node('mavlink_lora_get_battery_voltage')
 # mavlink_msg subscriber
 rospy.Subscriber(mavlink_lora_sub_topic, mavlink_lora_msg, on_mavlink_msg)
 rate = rospy.Rate(update_interval)
