@@ -9,8 +9,13 @@ def send_integer(value, ser):
     """
     Send through serial port an integer formated as a 16-bit ushort.
     """
-    message = struct.pack("I", value)
-    ser.write(message)
+    try:
+        message = struct.pack(">H", value)
+    except struct.error:
+        print("Value out of Short type range")
+    else:
+        print("Sending {}".format(message))
+        ser.write(message)
     return
 
 
@@ -31,7 +36,6 @@ def main():
         except ValueError:
             print("Non valid input. Only integers")
             continue
-        print("Sending {}".format(value))
         send_integer(value, ser)
     return
 
