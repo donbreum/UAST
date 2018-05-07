@@ -215,8 +215,8 @@ void loop()
     ppm[5] ==1850; 
 
   // unused for now 
-  ppm[6] = (long)servo_value;
-  ppm[7] = (long)servo_value;
+  ppm[6] = servo_value;
+  ppm[7] = servo_value;
 
   // Read and parse serial port commands
   unsigned char read_byte[2];
@@ -229,7 +229,6 @@ void loop()
     // Combine both chars for obtaining an unsigned short value.
     servo_value = (((unsigned short)read_byte[0]) << 8) | read_byte[1];
   }
-
   // debug: output analog and digital input values to the serial port
   /* Serial.print (analog[0]);
   Serial.print (" ");
