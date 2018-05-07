@@ -56,7 +56,7 @@ Revision
 #define PIN_AUDIO 11
 #define PIN_BATT_VOLT A0
 #define PIN_BUZZER 5
-#define PIN_LED_RED 9
+#define PIN_LED_RED 13
 #define PIN_LED_GREEN 10
 
 /* ppm defines */
@@ -77,9 +77,14 @@ short count;
 boolean led_state;
 boolean buzzer_state;
 
+unsigned short servo_value;
+bool led_on;
+
 /****************************************************************************/
 void setup()
 {  
+  led_on = true;
+  servo_value = default_servo_value;
   // setup digital output pins
   pinMode(LED_BUILTIN, OUTPUT); 
   pinMode(PIN_LED_RED, OUTPUT); 
@@ -158,6 +163,7 @@ ISR(TIMER1_COMPA_vect)
 /****************************************************************************/
 void loop()
 {
+
   //put main code here
   unsigned short servo_value;
   static int val = 1;
@@ -213,7 +219,7 @@ void loop()
   ppm[7] = (long)servo_value;
 
   // Read and parse serial port commands
-  char read_byte[2];
+  unsigned char read_byte[2];
   if (Serial.available())
   {
     read_byte[0] = Serial.read();
