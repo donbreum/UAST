@@ -79,7 +79,7 @@ class exportQDC:
         #write_item_data(self, auto_cnt, cmd_id, jmp_id, frm_id, params, tp):
     def write_cycle_items(self, gps_data, auto_cnt, cmd_id, frm_id, coordB, coordE, tp):
         for i in range (coordB, coordE):   #len(gps_data)
-            params =[0,0,0,0,gps_data[i][1],gps_data[i][2],50]
+            params =[0,0,0,0,gps_data[i][1],gps_data[i][2],15]
             self.write_item_data(True, cmd_id, i + 1, frm_id,params, tp)
 
 #auto_cnt = true
