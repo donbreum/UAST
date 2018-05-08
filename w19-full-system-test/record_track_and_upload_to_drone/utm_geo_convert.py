@@ -7,14 +7,17 @@ def utm_to_geodetic(utm_data):
     uc = utmconv()
     geodetic_coordinates = np.array
     for point in utm_data:
-        new_geodetic_coordinates = uc.utm_to_geodetic(str(utm_data[:,0][0]),
-                                                     int(utm_data[:,1][0]),
-                                                     float(utm_data[:,3][0]),
-                                                     float(utm_data[:,4][0]))
+        # import pdb; pdb.set_trace()
+        new_geodetic_coordinates = uc.utm_to_geodetic(str(point[0]),
+                                                     int(point[1]),
+                                                     float(point[3]),
+                                                     float(point[4]))
+
         # The first time, the exception is raised and the array is initialized.
         try:
             geodetic_coordinates = np.vstack((geodetic_coordinates,
                                               new_geodetic_coordinates))
+
         except ValueError:
             geodetic_coordinates = new_geodetic_coordinates
 

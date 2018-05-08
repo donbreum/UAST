@@ -71,15 +71,32 @@ def main(plots=False):
     if(plots):
         plotter.path_plot(filtered_utm_coordinates, vertices, wyatt,
                           min_dist_path, min_dist_path_angle)
-    # import pdb; pdb.set_trace()
+
     # ex. 4.5 - convert back to geo
     filtered_geo_coordinates = utm_geo_convert.utm_to_geodetic(utm_data)
+
 
     # ex 4.7 - fixed wing path cubic hermite spline
     if(plots):
         chs = cubic_hermite_spline();
         splines = chs.get_path(vertices)
         plotter.path_plot(vertices, splines)
+
+    # convert vertices to geodetic_coordinates
+    left_side = np.zeros((vertices.shape[0],3)).astype(str)
+    left_side[:, 0] = "N"
+    left_side[:, 1] = 32
+    left_side[:, 2] = "U"
+    result = np.hstack((left_side, vertices))
+    coordinates_for_planner = utm_geo_convert.utm_to_geodetic(result)
+    # import pdb; pdb.set_trace()
+    # write to file
+    new_left_side = np.zeros((vertices.shape[0],1)).astype(str)
+    new_result = np.hstack((new_left_side, coordinates_for_planner))
+    new_left_side = np.zeros((vertices.shape[0],1)).astype(str)
+    new_left_side[:, 0] = "15"
+    new_result = np.hstack((new_result, new_left_side))
+    np.savetxt("resources/new_log_wps.log", new_result, "%s", ",")
 
     return utm_coordinates
 

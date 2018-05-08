@@ -1,7 +1,7 @@
 import json
 import numpy as np
 from utm import utmconv
-def parse_data(inputfile="position.log"):
+def parse_data(inputfile="./resources/new_log_wps.log"):
     init = False
     gps_data = np.zeros(9)
     with open(inputfile, 'r') as data_file:
@@ -35,7 +35,7 @@ class exportQDC:
 
 
     def write_begin(self, filetype, polygon, versionGF, groundStation):
-        self.geoFence['fileType'] = "'" +  str(filetype) + "'"
+        self.plan['fileType'] = 'Plan'#"'" +  str(filetype) + "'"
         self.geoFence['polygon'] =  polygon # []
         self.geoFence['version'] =  versionGF
         self.plan['geoFence'] = self.geoFence
@@ -79,7 +79,7 @@ class exportQDC:
         #write_item_data(self, auto_cnt, cmd_id, jmp_id, frm_id, params, tp):
     def write_cycle_items(self, gps_data, auto_cnt, cmd_id, frm_id, coordB, coordE, tp):
         for i in range (coordB, coordE):   #len(gps_data)
-            params ="[0,0,0,0,"+str(gps_data[i][1])+","+ str(gps_data[i][1])+",50]"
+            params =[0,0,0,0,gps_data[i][1],gps_data[i][2],50]
             self.write_item_data(True, cmd_id, i + 1, frm_id,params, tp)
 
 #auto_cnt = true
